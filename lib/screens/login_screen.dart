@@ -3,6 +3,7 @@ import 'package:eos_advance_login/theme/res/palette.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:eos_advance_login/theme/light_theme.dart';
 import 'package:eos_advance_login/theme/foundation/app_theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /// 로그인 화면 - 이메일 로그인과 소셜 로그인 기능을 제공합니다.
 class LoginScreen extends StatefulWidget {
@@ -223,23 +224,51 @@ class _LoginScreenState extends State<LoginScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         TextButton(
-          onPressed: () {
-            // TODO: [과제 2-2] 비밀번호 재설정 기능 구현
-            /*
-             * 비밀번호 재설정 과제
-             * 
-             * 구현 단계:
-             * 1. 이메일 입력 다이얼로그 구현
-             *    - AlertDialog 또는 SimpleDialog 사용
-             *    - TextEditingController를 사용하여 이메일 입력값 관리
-             *    - 취소/확인 버튼 제공
-             * 
-             * 2. 비밀번호 재설정 요청 처리
-             *    - FirebaseAuth.instance.sendPasswordResetEmail() 메서드 사용
-             *    - 이메일 형식 유효성 검증
-             *    - 요청 성공/실패에 따른 피드백 제공
-             *    - 오류 처리 (사용자가 존재하지 않을 경우 등)
-             */
+          onPressed: () async {
+            final emailController = TextEditingController();
+            final result = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text('비밀번호 재설정'),
+                content: TextField(
+                  controller: emailController,
+                  decoration: InputDecoration(
+                    labelText: '이메일 주소',
+                    hintText: '가입한 이메일을 입력하세요',
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: Text('취소'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: Text('전송'),
+                  ),
+                ],
+              ),
+            );
+
+            if (result == true && emailController.text.isNotEmpty) {
+              try {
+                await FirebaseAuth.instance.sendPasswordResetEmail(
+                  email: emailController.text,
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('비밀번호 재설정 이메일을 전송했습니다.')),
+                );
+              } on FirebaseAuthException catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text(e.code == 'user-not-found'
+                          ? '등록되지 않은 이메일입니다.'
+                          : '비밀번호 재설정 이메일 전송에 실패했습니다.')),
+                );
+              }
+            }
+            emailController.dispose();
           },
           child: Text(
             '비밀번호 재설정',
@@ -248,7 +277,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
-        // 세로 구분선
         Container(
           height: 16,
           width: 1,
@@ -256,31 +284,80 @@ class _LoginScreenState extends State<LoginScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 8),
         ),
         TextButton(
-          onPressed: () {
-            // TODO: [과제 2-3] 회원가입 기능 구현
-            /*
-             * 회원가입 과제
-             * 
-             * 구현 단계:
-             * 1. 회원가입 입력 폼 구현
-             *    - 이메일 입력 필드
-             *    - 비밀번호 입력 필드 (obscureText: true)
-             *    - 비밀번호 확인 필드 (두 비밀번호 일치 여부 확인)
-             *    - 다이얼로그 또는 별도 화면으로 구현 가능
-             * 
-             * 2. 입력값 유효성 검사
-             *    - 이메일 형식 검증
-             *    - 비밀번호 길이 및 강도 검증 (6자 이상)
-             *    - 비밀번호-확인 일치 여부 확인
-             * 
-             * 3. Firebase 회원가입 요청 처리
-             *    - FirebaseAuth.instance.createUserWithEmailAndPassword() 메서드 사용
-             *    - 주요 오류 코드 처리:
-             *      > email-already-in-use: 이미 사용 중인 이메일
-             *      > weak-password: 취약한 비밀번호
-             *      > invalid-email: 유효하지 않은 이메일 형식
-             *    - 성공 시 자동 로그인 처리
-             */
+          onPressed: () async {
+            final emailController = TextEditingController();
+            final passwordController = TextEditingController();
+            final confirmController = TextEditingController();
+
+            final result = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text('회원가입'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: emailController,
+                      decoration: InputDecoration(labelText: '이메일'),
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    TextField(
+                      controller: passwordController,
+                      decoration: InputDecoration(labelText: '비밀번호 (6자 이상)'),
+                      obscureText: true,
+                    ),
+                    TextField(
+                      controller: confirmController,
+                      decoration: InputDecoration(labelText: '비밀번호 확인'),
+                      obscureText: true,
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: Text('취소'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: Text('가입'),
+                  ),
+                ],
+              ),
+            );
+
+            if (result == true) {
+              if (passwordController.text != confirmController.text) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('비밀번호가 일치하지 않습니다.')),
+                );
+              } else if (passwordController.text.length < 6) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('비밀번호는 6자 이상이어야 합니다.')),
+                );
+              } else {
+                try {
+                  await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                    email: emailController.text,
+                    password: passwordController.text,
+                  );
+                } on FirebaseAuthException catch (e) {
+                  String message = switch (e.code) {
+                    'email-already-in-use' => '이미 사용 중인 이메일입니다.',
+                    'weak-password' => '비밀번호가 너무 약합니다.',
+                    'invalid-email' => '유효하지 않은 이메일 형식입니다.',
+                    _ => '회원가입에 실패했습니다.',
+                  };
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(message)),
+                  );
+                }
+              }
+            }
+
+            emailController.dispose();
+            passwordController.dispose();
+            confirmController.dispose();
           },
           child: Text(
             '회원가입',
@@ -401,28 +478,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   /// 이메일 로그인 처리 메서드
-  void _handleEmailLogin(BuildContext context) {
-    // TODO: [과제 2-1] Firebase Auth를 사용한 이메일 로그인 구현
-    /*
-     * 이메일/비밀번호 로그인 구현 과제
-     * 
-     * 구현 단계:
-     * 1. 입력값 유효성 검사
-     *    - 이메일 형식: RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)
-     *    - 비밀번호 검증: password.length >= 6
-     * 
-     * 2. Firebase 로그인 요청 전송
-     *    - FirebaseAuth.instance.signInWithEmailAndPassword() 메서드 사용
-     *    - 로그인 성공 시 HomeScreen으로 자동 이동 (authStateChanges 사용)
-     *    - 주요 오류 코드 처리:
-     *      > user-not-found: 등록되지 않은 이메일
-     *      > wrong-password: 잘못된 비밀번호
-     *      > invalid-email: 유효하지 않은 이메일 형식
-     *      > user-disabled: 비활성화된 계정
-     *    - 오류 메시지를 SnackBar로 사용자에게 표시
-     */
-
-    // 입력값 검증 (현재 코드는 유지)
+  void _handleEmailLogin(BuildContext context) async {
+    // 입력값 검증
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('이메일과 비밀번호를 모두 입력해주세요.')),
@@ -430,8 +487,23 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // 테스트용 로그인 메시지 (실제 구현 시 제거)
-    _showLoginMessage(context, '이메일');
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+    } on FirebaseAuthException catch (e) {
+      String message = switch (e.code) {
+        'user-not-found' => '등록되지 않은 이메일입니다.',
+        'wrong-password' => '잘못된 비밀번호입니다.',
+        'invalid-email' => '유효하지 않은 이메일 형식입니다.',
+        'user-disabled' => '비활성화된 계정입니다.',
+        _ => '로그인에 실패했습니다.',
+      };
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    }
   }
 
   /// 카카오 로그인 처리 메서드

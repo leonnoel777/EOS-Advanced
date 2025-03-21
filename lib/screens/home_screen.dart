@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:eos_advance_login/theme/light_theme.dart';
 import 'package:eos_advance_login/theme/foundation/app_theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /// 홈 화면 - 로그인 성공 후 표시되는 화면입니다.
 /// Firebase Auth를 사용한 로그아웃 기능을 구현해야 합니다.
@@ -53,16 +54,17 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
 
-            // TODO: [과제 3-1] 현재 로그인한 사용자 정보 표시
-            /*
-             * 1. 사용자 정보 가져오기:
-              *    final user = FirebaseAuth.instance.currentUser;
-              *    
-              * 2. 사용자 이메일 표시:
-              *    Text(user?.email ?? '로그인 필요')
-             * - FirebaseAuth.instance.currentUser?.email을 사용하여 사용자 이메일 가져오기
-             * - 사용자 정보가 없는 경우 대체 텍스트 표시
-             */
+            // 사용자 이메일 표시
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Text(
+                '현재 로그인: ${FirebaseAuth.instance.currentUser?.email ?? '로그인 필요'}',
+                style: theme.typo.body1.copyWith(
+                  color: theme.color.primary,
+                  fontWeight: theme.typo.medium,
+                ),
+              ),
+            ),
 
             // 추가 정보 메시지
             Padding(
@@ -107,26 +109,14 @@ class HomeScreen extends StatelessWidget {
   }
 
   // 로그아웃 처리 메서드
-  void _handleLogout(BuildContext context) {
-    // TODO: [과제 3-2] Firebase Auth를 사용한 로그아웃 구현
-    /*
-     * 로그아웃 기능 구현 과제
-     * 
-     * 구현 단계:
-     * 1. Firebase 로그아웃 처리
-     *    try {
-     *      await FirebaseAuth.instance.signOut();
-     *      // authStateChanges()를 사용 중이라면 자동으로 로그인 화면으로 이동
-     *    } catch (e) {
-     *      // 오류 처리
-     *      ScaffoldMessenger.of(context).showSnackBar(
-     *        SnackBar(content: Text('로그아웃 중 오류가 발생했습니다: $e')),
-     *      );
-     *    }
-     * 
-     * 2. 수동 화면 이동 (필요한 경우)
-     *    - Navigator.of(context).pushAndRemoveUntil()을 사용하여
-     *      화면 스택을 비우고 로그인 화면으로 이동
-     */
+  void _handleLogout(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      // authStateChanges()로 인해 자동으로 로그인 화면으로 이동됨
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('로그아웃 중 오류가 발생했습니다: $e')),
+      );
+    }
   }
 }

@@ -13,6 +13,8 @@ import 'package:firebase_auth/firebase_auth.dart';
  * - Firebase 초기화 구현 완료
  */
 
+// 신영빈 화이팅! ㅎㅎ
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();

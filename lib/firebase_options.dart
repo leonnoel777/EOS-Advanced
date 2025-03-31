@@ -41,48 +41,49 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBpfRF6vvaWbZt5NUKgJJ9wa8z5xGuZl-s',
-    appId: '1:145551522874:web:8c4d4c544e72ed6e48c903',
-    messagingSenderId: '145551522874',
-    projectId: 'eos-advance',
-    authDomain: 'eos-advance.firebaseapp.com',
-    storageBucket: 'eos-advance.firebasestorage.app',
-    measurementId: 'G-YYTYYTRRZN',
+    apiKey: 'AIzaSyBxVAr87C8-FbFloj9Ly4ABzzKCaCF-Jj0',
+    appId: '1:1010637977166:web:93008f9f79ce538e78751f',
+    messagingSenderId: '1010637977166',
+    projectId: 'eos-advanced-908cf',
+    authDomain: 'eos-advanced-908cf.firebaseapp.com',
+    storageBucket: 'eos-advanced-908cf.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyA7BgB5ix2bqQeZz4M5ajvB8ej0YgEmuHM',
-    appId: '1:145551522874:android:11752679284c73c548c903',
-    messagingSenderId: '145551522874',
-    projectId: 'eos-advance',
-    storageBucket: 'eos-advance.firebasestorage.app',
+    apiKey: 'AIzaSyAFebLL7m_g_uuhR9v8EChxDt_F_M9tZMo',
+    appId: '1:1010637977166:android:dbf158cc266e55af78751f',
+    messagingSenderId: '1010637977166',
+    projectId: 'eos-advanced-908cf',
+    storageBucket: 'eos-advanced-908cf.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDGVW8aSjlNUMF6mFQfLdPwNMjox6ZN6F4',
-    appId: '1:145551522874:ios:6a7e93430ae75a4b48c903',
-    messagingSenderId: '145551522874',
-    projectId: 'eos-advance',
-    storageBucket: 'eos-advance.firebasestorage.app',
+    apiKey: 'AIzaSyCZnPXYq3EoijTdXRMy3cniGi2XO2BDon0',
+    appId: '1:1010637977166:ios:f99a537f62c887b578751f',
+    messagingSenderId: '1010637977166',
+    projectId: 'eos-advanced-908cf',
+    storageBucket: 'eos-advanced-908cf.firebasestorage.app',
+    iosClientId: '1010637977166-ritvgitu68r6cggs00v2sikc05euajf8.apps.googleusercontent.com',
     iosBundleId: 'com.example.eosAdvanceLogin',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDGVW8aSjlNUMF6mFQfLdPwNMjox6ZN6F4',
-    appId: '1:145551522874:ios:6a7e93430ae75a4b48c903',
-    messagingSenderId: '145551522874',
-    projectId: 'eos-advance',
-    storageBucket: 'eos-advance.firebasestorage.app',
+    apiKey: 'AIzaSyCZnPXYq3EoijTdXRMy3cniGi2XO2BDon0',
+    appId: '1:1010637977166:ios:f99a537f62c887b578751f',
+    messagingSenderId: '1010637977166',
+    projectId: 'eos-advanced-908cf',
+    storageBucket: 'eos-advanced-908cf.firebasestorage.app',
+    iosClientId: '1010637977166-ritvgitu68r6cggs00v2sikc05euajf8.apps.googleusercontent.com',
     iosBundleId: 'com.example.eosAdvanceLogin',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBpfRF6vvaWbZt5NUKgJJ9wa8z5xGuZl-s',
-    appId: '1:145551522874:web:83ce5f985015b03648c903',
-    messagingSenderId: '145551522874',
-    projectId: 'eos-advance',
-    authDomain: 'eos-advance.firebaseapp.com',
-    storageBucket: 'eos-advance.firebasestorage.app',
-    measurementId: 'G-E6L4VJ2WP7',
+    apiKey: 'AIzaSyBxVAr87C8-FbFloj9Ly4ABzzKCaCF-Jj0',
+    appId: '1:1010637977166:web:432bf69e48cb383b78751f',
+    messagingSenderId: '1010637977166',
+    projectId: 'eos-advanced-908cf',
+    authDomain: 'eos-advanced-908cf.firebaseapp.com',
+    storageBucket: 'eos-advanced-908cf.firebasestorage.app',
   );
+
 }

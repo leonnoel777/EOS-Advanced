@@ -1,79 +1,74 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+import 'package:kakao_flutter_sdk_talk/kakao_flutter_sdk_talk.dart';
+import 'package:http/http.dart' as http;
 
 class AuthService extends ChangeNotifier {
-  User? currentUser() {
-    // 현재 유저(로그인 되지 않은 경우 null 반환)
-    return FirebaseAuth.instance.currentUser;
+  /// 현재 로그인된 사용자 반환
+  firebase_auth.User? currentUser() {
+    return firebase_auth.FirebaseAuth.instance.currentUser;
   }
 
+  /// 이메일 회원가입
   void signUp({
-    required String email, // 이메일
-    required String password, // 비밀번호
-    required Function() onSuccess, // 가입 성공시 호출되는 함수
-    required Function(String err) onError, // 에러 발생시 호출되는 함수
+    required String email,
+    required String password,
+    required Function() onSuccess,
+    required Function(String err) onError,
   }) async {
-    // 회원가입
     if (email.isEmpty || password.isEmpty) {
       onError('이메일과 비밀번호를 입력해주세요.');
       return;
     }
-
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      await firebase_auth.FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
       onSuccess();
     } catch (e) {
-      if (e is FirebaseAuthException) {
+      if (e is firebase_auth.FirebaseAuthException) {
         switch (e.code) {
           case 'email-already-in-use':
-            onError('이미 사용 중인 이메일입니다. 다른 이메일을 사용하거나 로그인을 시도해보세요.');
+            onError('이미 사용 중인 이메일입니다.');
             break;
           case 'weak-password':
-            onError('비밀번호가 너무 약합니다. 6자리 이상으로 문자, 숫자, 특수문자를 조합해 보세요.');
+            onError('비밀번호가 너무 약합니다.');
             break;
           case 'invalid-email':
-            onError('유효하지 않은 이메일 형식입니다. 정확한 이메일 주소를 입력해주세요.');
-            break;
-          case 'operation-not-allowed':
-            onError('이메일/비밀번호 계정이 비활성화되어 있습니다. 관리자에게 문의하세요.');
-            break;
-          case 'network-request-failed':
-            onError('네트워크 연결에 실패했습니다. 인터넷 연결을 확인해주세요.');
+            onError('유효하지 않은 이메일 형식입니다.');
             break;
           default:
-            onError('회원가입 중 오류가 발생했습니다. (오류 코드: ${e.code})');
+            onError('회원가입 중 오류 발생 (코드: ${e.code})');
             break;
         }
       } else {
-        onError('회원가입 중 예상치 못한 오류가 발생했습니다: ${e.toString()}');
+        onError('회원가입 중 오류: ${e.toString()}');
       }
     }
   }
 
+  /// 이메일 로그인
   void signIn({
-    required String email, // 이메일
-    required String password, // 비밀번호
-    required Function() onSuccess, // 로그인 성공시 호출되는 함수
-    required Function(String err) onError, // 에러 발생시 호출되는 함수
+    required String email,
+    required String password,
+    required Function() onSuccess,
+    required Function(String err) onError,
   }) async {
-    // 로그인
     if (email.isEmpty || password.isEmpty) {
       onError('이메일과 비밀번호를 입력해주세요.');
       return;
     }
-
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await firebase_auth.FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
       onSuccess();
     } catch (e) {
-      if (e is FirebaseAuthException) {
+      if (e is firebase_auth.FirebaseAuthException) {
         switch (e.code) {
           case 'invalid-email':
             onError('유효하지 않은 이메일 형식입니다.');
@@ -85,76 +80,101 @@ class AuthService extends ChangeNotifier {
             onError('존재하지 않는 이메일입니다.');
             break;
           default:
-            onError('로그인 중 오류가 발생했습니다.');
+            onError('로그인 중 오류 발생 (코드: ${e.code})');
             break;
         }
       } else {
-        onError('로그인 중 오류가 발생했습니다.');
+        onError('로그인 중 오류 발생.');
       }
     }
   }
 
+  /// 로그아웃
   void signOut() async {
-    // 로그아웃
+    await firebase_auth.FirebaseAuth.instance.signOut();
+    await GoogleSignIn().signOut();
+    try {
+      await UserApi.instance.logout();
+    } catch (e) {
+      // 카카오 로그인이 아닐 경우 에러 무시
+    }
+    notifyListeners();
   }
 
-  // TODO: [과제 1-2] Google 로그인 및 Firebase 연동 메서드 구현
-  /*
-   * Google 로그인 및 Firebase 연동 메서드
-   *
-   * 구현 단계:
-   * 1. GoogleSignIn 인스턴스 생성 및 로그인 요청
-   *    - GoogleSignIn().signIn() 호출
-   *    - 사용자 계정 선택 및 권한 동의 과정 처리
-   *
-   * 2. 인증 정보 획득
-   *    - googleUser.authentication 호출하여 accessToken과 idToken 획득
-   *
-   * 3. Firebase 인증 정보 생성
-   *    - GoogleAuthProvider.credential()로 OAuthCredential 생성
-   *    - accessToken과 idToken 전달
-   *
-   * 4. Firebase 인증 완료
-   *    - FirebaseAuth.instance.signInWithCredential() 호출
-   *
-   * 5. 성공/실패 처리
-   *    - 성공 시 onSuccess 콜백 호출
-   *    - 실패 시 오류 내용에 따라 구분하여 onError 콜백 호출
-   */
+  /// Google 로그인 및 Firebase 연동
   Future<void> signInWithGoogle({
     required Function() onSuccess,
     required Function(String err) onError,
   }) async {
-    // 여기에 구글 로그인 로직을 구현하세요
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        onError('구글 로그인 취소됨');
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final credential = firebase_auth.GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await firebase_auth.FirebaseAuth.instance
+          .signInWithCredential(credential);
+      onSuccess();
+    } catch (e) {
+      onError('구글 로그인 실패: ${e.toString()}');
+    }
   }
 
-  // TODO: [과제 2-2] 카카오 로그인 및 Firebase 연동 메서드 구현
-  /*
-   * 카카오 로그인 및 Firebase 연동 메서드
-   *
-   * 구현 단계:
-   * 1. 카카오 SDK 초기화
-   *    - KakaoSdk.init() 호출 (main.dart에서 초기화 또는 여기서)
-   *
-   * 2. 카카오 로그인 요청 및 토큰 획득
-   *    - UserApi.instance.loginWithKakaoAccount() 사용
-   *    - 토큰 발급 확인
-   *
-   * 3. Firebase Functions 호출하여 커스텀 토큰 획득
-   *    - 카카오 액세스 토큰을 Firebase 커스텀 토큰으로 교환하는 HTTP 요청
-   *    - 서버는 토큰 검증 후 Firebase 커스텀 토큰 발행
-   *
-   * 4. Firebase 인증
-   *    - FirebaseAuth.instance.signInWithCustomToken() 호출
-   *
-   * 5. 성공/실패 처리
-   *    - 성공 시 onSuccess 콜백 호출
-   *    - 실패 시 오류 내용에 따라 구분하여 onError 콜백 호출
-   */
+  /// Kakao 로그인 및 Firebase 연동 (Custom Token 방식)
   Future<void> signInWithKakao({
     required Function() onSuccess,
     required Function(String err) onError,
   }) async {
-    // 여기에 카카오 로그인 로직을 구현하세요
+    try {
+      OAuthToken token;
+
+      // 카카오톡 설치 여부에 따라 로그인 방법 결정
+      if (await isKakaoTalkInstalled()) {
+        try {
+          token = await UserApi.instance.loginWithKakaoTalk();
+        } catch (e) {
+          // 사용자가 카카오톡 로그인을 취소한 경우
+          if (e is PlatformException && e.code == 'CANCELED') {
+            onError('카카오톡 로그인이 취소되었습니다.');
+            return;
+          }
+          // 카카오톡 로그인 실패 → 카카오계정 로그인 시도
+          token = await UserApi.instance.loginWithKakaoAccount();
+        }
+      } else {
+        token = await UserApi.instance.loginWithKakaoAccount();
+      }
+
+      final kakaoAccessToken = token.accessToken;
+
+      // Firebase Functions 호출하여 커스텀 토큰 요청
+      final response = await http.post(
+        Uri.parse('https://YOUR_CLOUD_FUNCTION_URL/customToken'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'token': kakaoAccessToken}),
+      );
+
+      if (response.statusCode != 200) {
+        onError('Firebase 커스텀 토큰 요청 실패: ${response.body}');
+        return;
+      }
+
+      final customToken = jsonDecode(response.body)['firebase_token'];
+
+      await firebase_auth.FirebaseAuth.instance
+          .signInWithCustomToken(customToken);
+      onSuccess();
+    } catch (e) {
+      onError('카카오 로그인 실패: ${e.toString()}');
+    }
   }
 }
